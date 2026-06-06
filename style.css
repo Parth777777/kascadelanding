@@ -1246,6 +1246,9 @@ html[data-theme="dark"] .toast {
     grid-template-columns: 1fr;
     gap: 10px;
   }
+  #earnings .earnings-card:nth-child(n+3) {
+    display: none;
+  }
   #earnings .heatmap-card {
     display: none;
   }
