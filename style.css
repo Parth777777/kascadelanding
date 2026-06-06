@@ -153,14 +153,9 @@ button, input { font: inherit; color: inherit; border: 0; background: none; outl
 .center.lead-sm { margin-left: auto; margin-right: auto; }
 
 .cta-row { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
-.stats-row { display: grid; grid-template-columns: repeat(3, auto); gap: 32px; margin-top: 44px; max-width: 480px; }
-.stat { border-left: 1px solid var(--border-strong); padding-left: 14px; }
-.stat-val { font-size: 22px; font-weight: 600; color: var(--ink); }
-.stat-label { font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
-.display, .lead, .cta-row, .stats-row { animation: rise .8s cubic-bezier(.2,.85,.2,1) both; }
+.display, .lead, .cta-row { animation: rise .8s cubic-bezier(.2,.85,.2,1) both; }
 .lead { animation-delay: .08s; }
 .cta-row { animation-delay: .16s; }
-.stats-row { animation-delay: .24s; }
 
 /* ============ HERO RIGHT ============ */
 .hero-right { position: relative; }
@@ -723,11 +718,6 @@ button, input { font: inherit; color: inherit; border: 0; background: none; outl
 .center.lead-sm { margin-left: auto; margin-right: auto; }
 
 .cta-row { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
-.stats-row { display: grid; grid-template-columns: repeat(3, auto); gap: 32px; margin-top: 44px; max-width: 480px; }
-.stat { border-left: 1px solid var(--border-strong); padding-left: 14px; }
-.stat-val { font-size: 22px; font-weight: 600; color: var(--ink); }
-.stat-label { font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
-
 /* ============ HERO RIGHT ============ */
 .hero-right { position: relative; }
 
@@ -1087,10 +1077,9 @@ html[data-theme="dark"] .toast {
   transform: translateY(-2px) scale(1.01);
 }
 
-.display, .lead, .cta-row, .stats-row { animation: rise .8s cubic-bezier(.2,.85,.2,1) both; }
+.display, .lead, .cta-row { animation: rise .8s cubic-bezier(.2,.85,.2,1) both; }
 .lead { animation-delay: .08s; }
 .cta-row { animation-delay: .16s; }
-.stats-row { animation-delay: .24s; }
 
 .panel { animation: rise .9s cubic-bezier(.2,.85,.2,1) .15s both, float 8s ease-in-out 1.2s infinite; }
 .hero-grid { animation: drift 28s linear infinite; }
