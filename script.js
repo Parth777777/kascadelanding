@@ -557,9 +557,8 @@ if (heroDemoBtn) {
 
 // ============ HERO EFFECTS ============
 function setupHeroEffects() {
-  const hero = document.querySelector('.hero');
   const panel = document.getElementById('heroPanel');
-  const sparks = document.querySelector('.hero-sparks');
+  const sparks = document.querySelector('.page-sparks');
 
   if (panel) {
     panel.addEventListener('pointermove', (e) => {
@@ -575,16 +574,16 @@ function setupHeroEffects() {
     });
   }
 
-  if (hero && sparks) {
-    hero.addEventListener('pointerdown', (e) => {
+  if (sparks) {
+    document.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
-      const rect = hero.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      if (e.target.closest && e.target.closest('button, a, input, textarea, select, label')) return;
+      const x = e.clientX;
+      const y = e.clientY;
       const count = 7;
       for (let i = 0; i < count; i++) {
         const spark = document.createElement('span');
-        spark.className = 'hero-spark';
+        spark.className = 'page-spark';
         const angle = (Math.PI * 2 * i) / count;
         const distance = 14 + Math.random() * 18;
         const dx = Math.cos(angle) * distance;
