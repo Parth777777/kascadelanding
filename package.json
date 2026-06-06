@@ -1,0 +1,10 @@
+{
+  "name": "tickwavelanding",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Kascade landing page",
+  "type": "commonjs",
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
+  }
+}
