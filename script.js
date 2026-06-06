@@ -442,14 +442,13 @@ toastHost.className = 'toast-host';
 document.body.appendChild(toastHost);
 
 const firebaseConfig = window.__FIREBASE_CONFIG__ || null;
-let waitlistCollection = null;
+let waitlistRef = null;
 
 if (window.firebase && firebaseConfig) {
   try {
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    db.settings({ ignoreUndefinedProperties: true });
-    waitlistCollection = db.collection('waitlist');
+    const db = firebase.database();
+    waitlistRef = db.ref('waitlist');
   } catch (err) {
     console.warn('Firebase waitlist init failed:', err);
   }
@@ -486,15 +485,15 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
-    if (!waitlistCollection) {
+    if (!waitlistRef) {
       throw new Error('Firebase waitlist is not initialized yet.');
     }
 
-    await waitlistCollection.add({
+    await waitlistRef.push({
       email,
       source: 'landing',
       page: location.pathname,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
       userAgent: String(navigator.userAgent || '').slice(0, 160),
     });
 
@@ -509,7 +508,7 @@ form.addEventListener('submit', async (e) => {
       local.push({ email, createdAt: new Date().toISOString(), source: 'landing' });
       localStorage.setItem('kascade_waitlist', JSON.stringify(local));
       btn.textContent = 'Saved';
-      setWaitlistMsg('Saved locally. Connect Firestore to persist entries.', 'success');
+      setWaitlistMsg('Saved locally. Connect Realtime Database to persist entries.', 'success');
     } else {
       setWaitlistMsg(err?.message ? String(err.message) : 'Waitlist signup failed. Please try again.', 'error');
     }

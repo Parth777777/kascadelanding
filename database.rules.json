@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "waitlist": {
+      ".read": false,
+      "$entry": {
+        ".write": "newData.hasChildren(['email', 'source', 'page', 'createdAt', 'userAgent'])",
+        "email": {
+          ".validate": "newData.isString() && newData.val().matches(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/)"
+        },
+        "source": {
+          ".validate": "newData.isString()"
+        },
+        "page": {
+          ".validate": "newData.isString()"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "userAgent": {
+          ".validate": "newData.isString()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
