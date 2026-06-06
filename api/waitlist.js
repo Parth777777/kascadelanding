@@ -261,6 +261,7 @@ module.exports = async (req, res) => {
     });
   } catch (err) {
     console.error('waitlist handler error:', err);
-    return json(res, 500, { error: 'Waitlist signup failed on the server. Please try again.' });
+    const detail = err && err.message ? String(err.message).slice(0, 180) : 'unknown error';
+    return json(res, 500, { error: `Waitlist signup failed on the server: ${detail}` });
   }
 };
