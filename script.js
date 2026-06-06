@@ -441,6 +441,20 @@ const toastHost = document.createElement('div');
 toastHost.className = 'toast-host';
 document.body.appendChild(toastHost);
 
+const firebaseConfig = window.__FIREBASE_CONFIG__ || null;
+let waitlistCollection = null;
+
+if (window.firebase && firebaseConfig) {
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    db.settings({ ignoreUndefinedProperties: true });
+    waitlistCollection = db.collection('waitlist');
+  } catch (err) {
+    console.warn('Firebase waitlist init failed:', err);
+  }
+}
+
 function setWaitlistMsg(text, state) {
   msg.textContent = text;
   msg.className = state ? `form-msg ${state}` : 'form-msg';
@@ -463,28 +477,29 @@ form.addEventListener('submit', async (e) => {
   const email = emailInput.value.trim();
   const company = companyInput?.value.trim() || '';
   if (!email) return setWaitlistMsg('Add an email address first.', 'error');
-  btn.disabled = true; btn.textContent = 'Joining…';
+  btn.disabled = true;
+  btn.textContent = 'Joining...';
   try {
-    const res = await fetch('/api/waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        company,
-        source: 'landing',
-        page: location.pathname,
-      }),
-    });
-    const raw = await res.text();
-    let data = {};
-    try { data = raw ? JSON.parse(raw) : {}; } catch { data = { error: raw.trim() }; }
-    if (!res.ok) {
-      setWaitlistMsg(data.error || `Request failed (${res.status}). Please try again.`, 'error');
+    if (company) {
+      btn.textContent = 'Saved';
+      setWaitlistMsg('Thanks. We will email you when the app is ready.', 'success');
       return;
     }
 
-    btn.textContent = '✓ Joined';
-    setWaitlistMsg(data.message || "You're on the list. We'll be in touch.", 'success');
+    if (!waitlistCollection) {
+      throw new Error('Firebase waitlist is not initialized yet.');
+    }
+
+    await waitlistCollection.add({
+      email,
+      source: 'landing',
+      page: location.pathname,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      userAgent: String(navigator.userAgent || '').slice(0, 160),
+    });
+
+    btn.textContent = 'Joined';
+    setWaitlistMsg('You are on the list. We will email you when the app is ready.', 'success');
     showToast('You are on the list. We will email you when the app is ready.');
     emailInput.value = '';
     if (companyInput) companyInput.value = '';
@@ -493,10 +508,10 @@ form.addEventListener('submit', async (e) => {
       const local = JSON.parse(localStorage.getItem('kascade_waitlist') || '[]');
       local.push({ email, createdAt: new Date().toISOString(), source: 'landing' });
       localStorage.setItem('kascade_waitlist', JSON.stringify(local));
-      btn.textContent = '✓ Saved';
-      setWaitlistMsg('Saved locally. Run via Vercel or connect the API to persist entries.', 'success');
+      btn.textContent = 'Saved';
+      setWaitlistMsg('Saved locally. Connect Firestore to persist entries.', 'success');
     } else {
-      setWaitlistMsg('Network error. Please try again in a moment.', 'error');
+      setWaitlistMsg(err?.message ? String(err.message) : 'Waitlist signup failed. Please try again.', 'error');
     }
   } finally {
     btn.disabled = false;
@@ -596,3 +611,4 @@ setupHeroEffects();
 document.querySelectorAll('.card, .panel, .event-detail, .stock-terminal, .calendar-shell, .waitlist-form, .pattern-card, .earnings-card, .widget').forEach(el => {
   el.classList.add('surface-panel');
 });
+
