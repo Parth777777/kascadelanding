@@ -483,7 +483,7 @@ form.addEventListener('submit', async (e) => {
 
     btn.textContent = '✓ Joined';
     setWaitlistMsg(data.message || "You're on the list. We'll be in touch.", 'success');
-    showToast('You are on the list. We will notify you when app is ready.');
+    showToast('You are on the list. We will email you when the app is ready.');
     emailInput.value = '';
     if (companyInput) companyInput.value = '';
   } catch (err) {

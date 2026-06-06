@@ -219,8 +219,8 @@ module.exports = async (req, res) => {
         to: [notifyEmail],
         message: {
           subject: 'Kascade waitlist signup',
-          text: `New signup: ${entry.email}\nCompany: ${entry.company || '-'}\nSource: ${entry.source}\nPage: ${entry.page}`,
-          html: `<p><strong>New signup</strong></p><p>${entry.email}</p><p>Company: ${entry.company || '-'}</p><p>Source: ${entry.source}</p><p>Page: ${entry.page}</p>`,
+          text: `New waitlist signup: ${entry.email}\nCompany: ${entry.company || '-'}\nSource: ${entry.source}\nPage: ${entry.page}`,
+          html: `<p><strong>New waitlist signup</strong></p><p>${entry.email}</p><p>Company: ${entry.company || '-'}</p><p>Source: ${entry.source}</p><p>Page: ${entry.page}</p>`,
         },
         createdAt: FieldValue.serverTimestamp(),
       });
@@ -230,7 +230,7 @@ module.exports = async (req, res) => {
 
     return json(res, 200, {
       ok: true,
-      message: 'You are on the list. We will notify you when app is ready.',
+      message: 'You are on the list. We will email you when the app is ready.',
     });
   }
 
@@ -256,6 +256,6 @@ module.exports = async (req, res) => {
 
   return json(res, 200, {
     ok: true,
-    message: 'You are on the list. We will notify you when app is ready.',
+    message: 'You are on the list. We will email you when the app is ready.',
   });
 };
