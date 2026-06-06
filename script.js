@@ -475,9 +475,11 @@ form.addEventListener('submit', async (e) => {
         page: location.pathname,
       }),
     });
-    const data = await res.json().catch(() => ({}));
+    const raw = await res.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; } catch { data = { error: raw.trim() }; }
     if (!res.ok) {
-      setWaitlistMsg(data.error || 'Request failed. Please try again.', 'error');
+      setWaitlistMsg(data.error || `Request failed (${res.status}). Please try again.`, 'error');
       return;
     }
 

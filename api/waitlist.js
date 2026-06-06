@@ -142,120 +142,125 @@ async function persistLocally(entry) {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return json(res, 405, { error: 'Method not allowed' });
-  }
-
-  if (!sameOrigin(req)) {
-    return json(res, 403, { error: 'Origin rejected' });
-  }
-
-  const ip = getClientIp(req);
-  const now = Date.now();
-  const bucket = cleanupBucket(buckets.get(ip) || [], now);
-  const recentWindow = bucket.filter((ts) => now - ts < WINDOW_MS);
-  if (recentWindow.length >= MAX_PER_WINDOW || bucket.length >= MAX_PER_DAY) {
-    buckets.set(ip, bucket);
-    res.setHeader('Retry-After', '3600');
-    return json(res, 429, { error: 'Too many requests. Please wait and try again.' });
-  }
-
-  let body;
   try {
-    body = await readBody(req);
-  } catch (err) {
-    return json(res, err.statusCode || 400, { error: 'Invalid JSON payload' });
-  }
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return json(res, 405, { error: 'Method not allowed' });
+    }
 
-  const email = String(body.email || '').trim().toLowerCase();
-  const company = String(body.company || '').trim().slice(0, 120);
-  const source = String(body.source || 'landing').slice(0, 64);
-  const page = String(body.page || '/').slice(0, 128);
-  const notifyEmail = String(process.env.NOTIFY_EMAIL || '').trim().toLowerCase();
-  const userAgent = String(req.headers['user-agent'] || '').slice(0, 160);
+    if (!sameOrigin(req)) {
+      return json(res, 403, { error: 'Origin rejected' });
+    }
 
-  if (company) {
+    const ip = getClientIp(req);
+    const now = Date.now();
+    const bucket = cleanupBucket(buckets.get(ip) || [], now);
+    const recentWindow = bucket.filter((ts) => now - ts < WINDOW_MS);
+    if (recentWindow.length >= MAX_PER_WINDOW || bucket.length >= MAX_PER_DAY) {
+      buckets.set(ip, bucket);
+      res.setHeader('Retry-After', '3600');
+      return json(res, 429, { error: 'Too many requests. Please wait and try again.' });
+    }
+
+    let body;
+    try {
+      body = await readBody(req);
+    } catch (err) {
+      return json(res, err.statusCode || 400, { error: 'Invalid JSON payload' });
+    }
+
+    const email = String(body.email || '').trim().toLowerCase();
+    const company = String(body.company || '').trim().slice(0, 120);
+    const source = String(body.source || 'landing').slice(0, 64);
+    const page = String(body.page || '/').slice(0, 128);
+    const notifyEmail = String(process.env.NOTIFY_EMAIL || '').trim().toLowerCase();
+    const userAgent = String(req.headers['user-agent'] || '').slice(0, 160);
+
+    if (company) {
+      buckets.set(ip, bucket.concat(now));
+      return json(res, 200, { ok: true, message: 'Received.' });
+    }
+
+    if (!email || !(await validateEmail(email))) {
+      return json(res, 400, { error: 'Enter a valid deliverable email address.' });
+    }
+
     buckets.set(ip, bucket.concat(now));
-    return json(res, 200, { ok: true, message: 'Received.' });
-  }
 
-  if (!email || !(await validateEmail(email))) {
-    return json(res, 400, { error: 'Enter a valid deliverable email address.' });
-  }
+    const entry = {
+      email,
+      company,
+      source,
+      page,
+      createdAt: new Date(now).toISOString(),
+      ipHash: crypto.createHash('sha256').update(maskIp(ip)).digest('hex'),
+      userAgent,
+    };
 
-  buckets.set(ip, bucket.concat(now));
+    const firebase = getFirebaseDb();
+    if (firebase) {
+      const waitlistRef = firebase.collection('waitlist_entries').doc(email);
+      const notificationRef = firebase.collection('mail').doc();
+      const batch = firebase.batch();
 
-  const entry = {
-    email,
-    company,
-    source,
-    page,
-    createdAt: new Date(now).toISOString(),
-    ipHash: crypto.createHash('sha256').update(maskIp(ip)).digest('hex'),
-    userAgent,
-  };
-
-  const firebase = getFirebaseDb();
-  if (firebase) {
-    const waitlistRef = firebase.collection('waitlist_entries').doc(email);
-    const notificationRef = firebase.collection('mail').doc();
-    const batch = firebase.batch();
-
-    batch.set(waitlistRef, {
-      email: entry.email,
-      company: entry.company,
-      source: entry.source,
-      page: entry.page,
-      ipHash: entry.ipHash,
-      userAgent: entry.userAgent,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-      status: 'pending',
-    }, { merge: true });
-
-    if (notifyEmail) {
-      batch.set(notificationRef, {
-        to: [notifyEmail],
-        message: {
-          subject: 'Kascade waitlist signup',
-          text: `New waitlist signup: ${entry.email}\nCompany: ${entry.company || '-'}\nSource: ${entry.source}\nPage: ${entry.page}`,
-          html: `<p><strong>New waitlist signup</strong></p><p>${entry.email}</p><p>Company: ${entry.company || '-'}</p><p>Source: ${entry.source}</p><p>Page: ${entry.page}</p>`,
-        },
+      batch.set(waitlistRef, {
+        email: entry.email,
+        company: entry.company,
+        source: entry.source,
+        page: entry.page,
+        ipHash: entry.ipHash,
+        userAgent: entry.userAgent,
         createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        status: 'pending',
+      }, { merge: true });
+
+      if (notifyEmail) {
+        batch.set(notificationRef, {
+          to: [notifyEmail],
+          message: {
+            subject: 'Kascade waitlist signup',
+            text: `New waitlist signup: ${entry.email}\nCompany: ${entry.company || '-'}\nSource: ${entry.source}\nPage: ${entry.page}`,
+            html: `<p><strong>New waitlist signup</strong></p><p>${entry.email}</p><p>Company: ${entry.company || '-'}</p><p>Source: ${entry.source}</p><p>Page: ${entry.page}</p>`,
+          },
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+
+      return json(res, 200, {
+        ok: true,
+        message: 'You are on the list. We will email you when the app is ready.',
       });
     }
 
-    await batch.commit();
+    if (process.env.VERCEL_ENV === 'production') {
+      const missing = [];
+      if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        if (!process.env.FIREBASE_PROJECT_ID) missing.push('FIREBASE_PROJECT_ID');
+        if (!process.env.FIREBASE_CLIENT_EMAIL) missing.push('FIREBASE_CLIENT_EMAIL');
+        if (!process.env.FIREBASE_PRIVATE_KEY) missing.push('FIREBASE_PRIVATE_KEY');
+      }
+      return json(res, 503, {
+        error: missing.length
+          ? `Firebase is not configured. Missing: ${missing.join(', ')}.`
+          : 'Firebase service account JSON could not be parsed. Check FIREBASE_SERVICE_ACCOUNT_JSON format.',
+      });
+    }
+
+    try {
+      await persistLocally(entry);
+    } catch {
+      return json(res, 500, { error: 'Could not save waitlist entry.' });
+    }
 
     return json(res, 200, {
       ok: true,
       message: 'You are on the list. We will email you when the app is ready.',
     });
+  } catch (err) {
+    console.error('waitlist handler error:', err);
+    return json(res, 500, { error: 'Waitlist signup failed on the server. Please try again.' });
   }
-
-  if (process.env.VERCEL_ENV === 'production') {
-    const missing = [];
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-      if (!process.env.FIREBASE_PROJECT_ID) missing.push('FIREBASE_PROJECT_ID');
-      if (!process.env.FIREBASE_CLIENT_EMAIL) missing.push('FIREBASE_CLIENT_EMAIL');
-      if (!process.env.FIREBASE_PRIVATE_KEY) missing.push('FIREBASE_PRIVATE_KEY');
-    }
-    return json(res, 503, {
-      error: missing.length
-        ? `Firebase is not configured. Missing: ${missing.join(', ')}.`
-        : 'Firebase service account JSON could not be parsed. Check FIREBASE_SERVICE_ACCOUNT_JSON format.',
-    });
-  }
-
-  try {
-    await persistLocally(entry);
-  } catch {
-    return json(res, 500, { error: 'Could not save waitlist entry.' });
-  }
-
-  return json(res, 200, {
-    ok: true,
-    message: 'You are on the list. We will email you when the app is ready.',
-  });
 };
