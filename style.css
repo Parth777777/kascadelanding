@@ -1115,23 +1115,27 @@ html[data-theme="dark"] .toast {
     order: 2;
   }
   .hero {
-    padding-top: 136px;
-    padding-bottom: 52px;
+    padding-top: 148px;
+    padding-bottom: 60px;
   }
   .display {
-    font-size: clamp(36px, 12vw, 50px);
+    font-size: clamp(40px, 13vw, 58px);
   }
   .hero-inner {
-    gap: 24px;
+    gap: 28px;
   }
   .ticker-bar,
-  .greeting-chip,
   .float-card,
   .hero-beams,
   #heroPanel .card-soft:nth-of-type(2),
   #heroPanel .dual-card,
   #heroPanel .panel-head .live {
     display: none;
+  }
+  .greeting-chip {
+    display: flex;
+    max-width: 100%;
+    padding: 11px 14px;
   }
   #heroPanel .panel-body {
     padding: 12px;
@@ -1146,6 +1150,9 @@ html[data-theme="dark"] .toast {
   }
   #heroPanel .mini-stat:last-child {
     display: none;
+  }
+  #heroPanel {
+    transform: translateY(-2px);
   }
   .event-detail {
     position: static;
