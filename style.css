@@ -124,8 +124,13 @@ button, input { font: inherit; color: inherit; border: 0; background: none; outl
   pointer-events: none;
   overflow: hidden;
   mix-blend-mode: screen;
-  filter: blur(28px) saturate(1.15);
-  opacity: 0.62;
+  filter: blur(30px) saturate(1.2);
+  opacity: 0.68;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), transparent 60%),
+    radial-gradient(ellipse at 40% 30%, rgba(255,107,71,.09), transparent 55%),
+    radial-gradient(ellipse at 70% 26%, rgba(255,196,99,.06), transparent 52%);
+  animation: auroraBreath 18s ease-in-out infinite;
 }
 .aurora-swatch {
   position: absolute;
@@ -160,6 +165,28 @@ button, input { font: inherit; color: inherit; border: 0; background: none; outl
   background: radial-gradient(circle at 55% 50%, rgba(47,158,100,.7) 0%, rgba(47,158,100,.24) 30%, rgba(47,158,100,0) 72%);
   animation-duration: 16s;
   animation-delay: -8s;
+}
+.hero-aurora::before,
+.hero-aurora::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.hero-aurora::before {
+  background:
+    radial-gradient(circle at 22% 40%, rgba(255,107,71,.18), transparent 20%),
+    radial-gradient(circle at 58% 18%, rgba(255,196,99,.14), transparent 18%),
+    radial-gradient(circle at 78% 46%, rgba(47,158,100,.14), transparent 22%);
+  animation: auroraSpin 26s linear infinite;
+}
+.hero-aurora::after {
+  background:
+    radial-gradient(circle at 35% 60%, rgba(255,255,255,.05), transparent 20%),
+    radial-gradient(circle at 64% 54%, rgba(255,107,71,.08), transparent 18%);
+  animation: auroraSpin 34s linear infinite reverse;
+  opacity: 0.8;
 }
 .page-sparks {
   position: fixed;
@@ -1351,6 +1378,14 @@ html[data-theme="dark"] .toast {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   33% { transform: translate3d(3%, -2%, 0) scale(1.05); }
   66% { transform: translate3d(-2%, 3%, 0) scale(.98); }
+}
+@keyframes auroraBreath {
+  0%, 100% { opacity: 0.66; transform: translate3d(0, 0, 0) scale(1); }
+  50% { opacity: 0.76; transform: translate3d(0, 1%, 0) scale(1.03); }
+}
+@keyframes auroraSpin {
+  from { transform: rotate(0deg) scale(1); }
+  to { transform: rotate(360deg) scale(1); }
 }
 
 .heatmap-card { padding: 16px 18px !important; }
