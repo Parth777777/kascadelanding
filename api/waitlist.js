@@ -98,9 +98,20 @@ async function validateEmail(email) {
 }
 
 function getFirebaseDb() {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  let serviceAccount = null;
+
+  if (rawServiceAccount) {
+    try {
+      serviceAccount = JSON.parse(rawServiceAccount);
+    } catch {
+      return null;
+    }
+  }
+
+  const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount?.project_id || serviceAccount?.projectId;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || serviceAccount?.client_email || serviceAccount?.clientEmail;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY || serviceAccount?.private_key || serviceAccount?.privateKey;
   if (!projectId || !clientEmail || !privateKey) return null;
   if (!getApps().length) {
     initializeApp({
@@ -224,8 +235,16 @@ module.exports = async (req, res) => {
   }
 
   if (process.env.VERCEL_ENV === 'production') {
+    const missing = [];
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      if (!process.env.FIREBASE_PROJECT_ID) missing.push('FIREBASE_PROJECT_ID');
+      if (!process.env.FIREBASE_CLIENT_EMAIL) missing.push('FIREBASE_CLIENT_EMAIL');
+      if (!process.env.FIREBASE_PRIVATE_KEY) missing.push('FIREBASE_PRIVATE_KEY');
+    }
     return json(res, 503, {
-      error: 'Firebase is not configured. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY in Vercel env vars.',
+      error: missing.length
+        ? `Firebase is not configured. Missing: ${missing.join(', ')}.`
+        : 'Firebase service account JSON could not be parsed. Check FIREBASE_SERVICE_ACCOUNT_JSON format.',
     });
   }
 
