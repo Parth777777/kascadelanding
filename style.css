@@ -1176,10 +1176,7 @@ html[data-theme="dark"] .toast {
     justify-content: flex-start;
   }
   .analogues-card,
-  #earnings,
-  #forensics,
   #stock,
-  #calendar,
   #patterns {
     display: none;
   }
@@ -1199,6 +1196,57 @@ html[data-theme="dark"] .toast {
   }
   .section-head .lead-sm {
     max-width: 100%;
+  }
+  #earnings .earnings-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  #earnings .heatmap-card {
+    display: none;
+  }
+  #calendar .calendar-shell {
+    padding: 14px;
+  }
+  #calendar .calendar-head {
+    gap: 10px;
+    align-items: flex-start;
+  }
+  #calendar .calendar-legend {
+    display: none;
+  }
+  #calendar .calendar-weekdays,
+  #calendar .calendar-grid {
+    gap: 4px;
+  }
+  #calendar .calendar-cell {
+    min-height: 72px;
+    padding: 8px;
+  }
+  #calendar .calendar-event {
+    font-size: 12px;
+  }
+  #calendar .calendar-event-sub {
+    font-size: 9px;
+  }
+  #forensics .forensics-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  #forensics .card {
+    padding: 14px;
+  }
+  #forensics .source-list .source-row:nth-child(n+4) {
+    display: none;
+  }
+  #forensics .alert {
+    display: none;
+  }
+  #forensics .divider {
+    margin: 12px 0;
+  }
+  #forensics .muted-text {
+    font-size: 12px;
+    line-height: 1.45;
   }
 }
 
