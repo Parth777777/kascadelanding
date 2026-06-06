@@ -513,14 +513,8 @@ document.querySelectorAll('.card, .widget, .pattern-card, .earnings-card, .event
 function setupReactionPlayback() {
   const svg = document.getElementById('reactionChart');
   if (!svg) return;
-  // ensure parent can position overlay
   const parent = svg.parentElement;
   parent.style.position = parent.style.position || 'relative';
-  const overlay = document.createElement('div');
-  overlay.className = 'chart-overlay';
-  const btn = document.createElement('button'); btn.className = 'play-btn'; btn.textContent = 'Play';
-  overlay.appendChild(btn);
-  parent.appendChild(overlay);
 
   const ns = 'http://www.w3.org/2000/svg';
   const playLine = document.createElementNS(ns, 'line');
@@ -536,10 +530,8 @@ function setupReactionPlayback() {
     playLine.setAttribute('x1', px); playLine.setAttribute('x2', px);
     raf = requestAnimationFrame(step);
   }
-  btn.addEventListener('click', () => {
-    running = !running; btn.classList.toggle('playing', running); btn.textContent = running ? 'Pause' : 'Play';
-    if (running) { raf = requestAnimationFrame(step); } else { cancelAnimationFrame(raf); }
-  });
+  running = true;
+  raf = requestAnimationFrame(step);
 }
 setupReactionPlayback();
 
@@ -547,11 +539,7 @@ const heroDemoBtn = document.getElementById('heroDemoBtn');
 if (heroDemoBtn) {
   heroDemoBtn.addEventListener('click', () => {
     const lookup = document.getElementById('lookup');
-    const playBtn = document.querySelector('.play-btn');
     lookup?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => {
-      if (playBtn && playBtn.textContent === 'Play') playBtn.click();
-    }, 350);
   });
 }
 
