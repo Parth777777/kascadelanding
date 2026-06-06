@@ -103,7 +103,8 @@ function getFirebaseDb() {
 
   if (rawServiceAccount) {
     try {
-      serviceAccount = JSON.parse(rawServiceAccount);
+      const parsed = JSON.parse(rawServiceAccount.trim().replace(/^"(.*)"$/s, '$1'));
+      serviceAccount = parsed && typeof parsed === 'object' ? parsed : null;
     } catch {
       return null;
     }
@@ -111,7 +112,12 @@ function getFirebaseDb() {
 
   const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount?.project_id || serviceAccount?.projectId;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || serviceAccount?.client_email || serviceAccount?.clientEmail;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY || serviceAccount?.private_key || serviceAccount?.privateKey;
+  const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY || serviceAccount?.private_key || serviceAccount?.privateKey;
+  const privateKey = String(privateKeyRaw || '')
+    .trim()
+    .replace(/^"(.*)"$/s, '$1')
+    .replace(/\\n/g, '\n')
+    .replace(/\r/g, '');
   if (!projectId || !clientEmail || !privateKey) return null;
   if (!getApps().length) {
     initializeApp({
